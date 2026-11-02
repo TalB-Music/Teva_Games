@@ -18,6 +18,43 @@
 <h1>Controller check</h1>
 <p id="status">Press any button on the controller. Chrome only shows a controller after a button is pressed.</p>
 <div id="pads"></div>
+<h2>Direct connection</h2>
+<p>If nothing appears above, connect here, choose the controller in Chrome's list, then press buttons.</p>
+<button id="connect">Connect controller</button>
+<p id="hid-status">Not connected.</p>
+<p id="hid-report" style="font: 700 28px/1.2 system-ui, sans-serif">Report: none yet</p>
+<p id="hid-bytes" style="font-family: ui-monospace, monospace; overflow-wrap: anywhere"></p>
+<script>
+  const hidStatus = document.getElementById('hid-status');
+  const hidReport = document.getElementById('hid-report');
+  const hidBytes = document.getElementById('hid-bytes');
+  document.getElementById('connect').addEventListener('click', async () => {
+    if (!navigator.hid) {
+      hidStatus.textContent = 'This browser has no direct connection. Use Chrome on a computer.';
+      return;
+    }
+    try {
+      const [device] = await navigator.hid.requestDevice({
+        filters: [{ vendorId: 0x057e }, { usagePage: 1, usage: 4 }, { usagePage: 1, usage: 5 }],
+      });
+      if (!device) {
+        hidStatus.textContent = 'Nothing chosen. Press Connect controller to try again.';
+        return;
+      }
+      if (!device.opened) await device.open();
+      hidStatus.textContent = `Connected to ${device.productName}. Press buttons now.`;
+      let count = 0;
+      device.addEventListener('inputreport', (e) => {
+        count++;
+        const hex = [...new Uint8Array(e.data.buffer)].map((b) => b.toString(16).padStart(2, '0')).join(' ');
+        hidReport.textContent = `Report: ${e.reportId.toString(16).toUpperCase()} (${count} received)`;
+        hidBytes.textContent = hex;
+      });
+    } catch (err) {
+      hidStatus.textContent = `Couldn't connect: ${err.message}`;
+    }
+  });
+</script>
 <script>
   const pads = document.getElementById('pads');
   const status = document.getElementById('status');
