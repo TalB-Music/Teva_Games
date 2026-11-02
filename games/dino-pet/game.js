@@ -464,7 +464,7 @@
   /* ---------- Touch and mouse anywhere ---------- */
 
   addEventListener('pointerdown', (e) => {
-    if (e.target.closest('#home, #music, .act')) return;
+    if (e.target.closest('#home, #music, #pad-connect, .act')) return;
     if (phase !== 'awake') return anyPress();
     if (wake) return wake();
     if (e.target.closest('.dino')) return pat();

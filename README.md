@@ -26,6 +26,8 @@ Every push to `main` updates the website and builds a new APK. The APK's signing
 | Back to all games | Hold the house | Hold + and −, or Home | Hold Esc |
 | Music on or off | Tap the note | | |
 
+In Chrome on a computer, press a controller button first. If no controller picture appears at the top, click the faint controller icon there and choose your pad. Chrome remembers it, and the pad reconnects by itself after that.
+
 If a controller misbehaves, open `tools/pad-test.html` to see what it reports. To hear every piece of music, open `tools/jukebox.html`.
 
 ## Add a game

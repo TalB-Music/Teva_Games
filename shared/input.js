@@ -11,6 +11,9 @@
   const state = { x: 0, y: 0, keyX: 0, keyY: 0, padX: 0, padY: 0, padName: '' };
   const DEADZONE = 0.5;
   const HOME_HOLD_MS = 1200;
+  const PAD_ICON =
+    '<svg viewBox="0 0 64 40" aria-hidden="true"><path class="pad-body" d="M18 3h28c10 0 16 10 17 24 1 11-9 14-14 7l-5-7H20l-5 7C10 41 0 38 1 27 2 13 8 3 18 3Z"/>' +
+    '<path class="pad-marks" d="M18 11v10M13 16h10"/><circle class="pad-dot" cx="45" cy="12" r="3"/><circle class="pad-dot" cx="51" cy="18" r="3"/></svg>';
 
   function emit(name, arg) {
     if (T.audio) T.audio.unlock();
@@ -40,6 +43,91 @@
 
   let homeSince = 0;
 
+  // Chrome's Gamepad API can miss Switch-style pads on Windows, even when Windows
+  // itself sees them, so the pad can also be read directly over WebHID. It's shaped
+  // like a standard gamepad, and the rest of this file treats it as one.
+  const NINTENDO_SIMPLE_REPORT = 0x3f;
+  const HID_BUTTONS = 18;
+  const HID_BIT_TO_BUTTON = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17];
+  const HID_HAT_TO_DPAD = [[12], [12, 15], [15], [13, 15], [13], [13, 14], [14], [12, 14]];
+  let hidPad = null;
+
+  function readHidReport(report) {
+    if (report.reportId !== NINTENDO_SIMPLE_REPORT || report.data.byteLength < 7) return;
+    const data = report.data;
+    const bits = data.getUint8(0) | (data.getUint8(1) << 8);
+    const pressed = new Array(HID_BUTTONS).fill(false);
+    HID_BIT_TO_BUTTON.forEach((button, bit) => {
+      pressed[button] = Boolean(bits & (1 << bit));
+    });
+    (HID_HAT_TO_DPAD[data.getUint8(2)] || []).forEach((button) => {
+      pressed[button] = true;
+    });
+    hidPad.buttons = pressed.map((value) => ({ pressed: value }));
+    hidPad.axes = [(data.getUint8(4) - 128) / 128, (data.getUint8(6) - 128) / 128];
+  }
+
+  async function attachHid(device) {
+    try {
+      if (!device.opened) await device.open();
+    } catch (e) {
+      return;
+    }
+    hidPad = {
+      index: 'hid',
+      id: device.productName,
+      device,
+      mapping: 'standard',
+      axes: [0, 0],
+      buttons: new Array(HID_BUTTONS).fill({ pressed: false }),
+    };
+    device.addEventListener('inputreport', readHidReport);
+  }
+
+  async function chooseHid() {
+    T.audio && T.audio.unlock();
+    try {
+      const [device] = await navigator.hid.requestDevice({
+        filters: [{ vendorId: 0x057e }, { usagePage: 1, usage: 4 }, { usagePage: 1, usage: 5 }],
+      });
+      if (device) attachHid(device);
+    } catch (e) {
+      // Chrome refused or the list was closed. The icon stays for another try.
+    }
+  }
+
+  // A grown-up clicks this once. Chrome remembers the choice for next time.
+  function addConnectButton() {
+    if (document.getElementById('pad-connect') || document.getElementById('pad-badge')) return;
+    const btn = document.createElement('button');
+    btn.id = 'pad-connect';
+    btn.setAttribute('aria-label', 'Connect a controller');
+    btn.innerHTML = PAD_ICON;
+    btn.addEventListener('pointerdown', (e) => e.stopPropagation());
+    btn.addEventListener('click', chooseHid);
+    document.body.appendChild(btn);
+  }
+
+  async function setUpHid() {
+    if (!navigator.hid) return;
+    navigator.hid.addEventListener('connect', (e) => attachHid(e.device));
+    navigator.hid.addEventListener('disconnect', (e) => {
+      if (!hidPad || hidPad.device !== e.device) return;
+      hidPad = null;
+      prev.delete('hid');
+      const badge = document.getElementById('pad-badge');
+      if (badge) badge.remove();
+      addConnectButton();
+    });
+    try {
+      const [known] = await navigator.hid.getDevices();
+      if (known) return attachHid(known);
+    } catch (e) {
+      // Blocked by the page's host. The icon below may still offer a way in.
+    }
+    addConnectButton();
+  }
+
   // A little picture shows that the controller is working, since nothing else says so.
   function padFound() {
     if (!document.getElementById('pad-badge')) {
@@ -47,11 +135,11 @@
       badge.id = 'pad-badge';
       badge.setAttribute('role', 'img');
       badge.setAttribute('aria-label', 'Controller connected');
-      badge.innerHTML =
-        '<svg viewBox="0 0 64 40" aria-hidden="true"><path d="M18 3h28c10 0 16 10 17 24 1 11-9 14-14 7l-5-7H20l-5 7C10 41 0 38 1 27 2 13 8 3 18 3Z"/>' +
-        '<path class="pad-marks" d="M18 11v10M13 16h10"/><circle class="pad-dot" cx="45" cy="12" r="3"/><circle class="pad-dot" cx="51" cy="18" r="3"/></svg>';
+      badge.innerHTML = PAD_ICON;
       document.body.appendChild(badge);
     }
+    const connect = document.getElementById('pad-connect');
+    if (connect) connect.remove();
     emit('padFound');
     if (T.audio) T.audio.chirp();
   }
@@ -64,7 +152,8 @@
   });
 
   function pollPads(now) {
-    const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+    const browserPads = [...(navigator.getGamepads ? navigator.getGamepads() : [])].filter(Boolean);
+    const pads = browserPads.length || !hidPad ? browserPads : [hidPad];
     let padX = 0;
     let padY = 0;
     let bothMenuButtons = false;
@@ -152,11 +241,13 @@
     requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);
+  setUpHid();
 
   T.input = {
     listen(listener) {
       listeners.push(listener);
     },
+    attachHid,
     get x() {
       return state.x;
     },
