@@ -14,6 +14,7 @@
       master.connect(ctx.destination);
     }
     if (ctx.state === 'suspended') ctx.resume();
+    if (T.music) T.music.begin();
   }
 
   function tone(from, to, dur, delay = 0, type = 'sine', vol = 0.6) {
@@ -51,6 +52,7 @@
 
   T.audio = {
     unlock,
+    context: () => ctx,
     chirp() {
       tone(620, 980, 0.12);
       tone(860, 1320, 0.15, 0.13);

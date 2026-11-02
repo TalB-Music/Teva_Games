@@ -15,6 +15,7 @@
 
   T.addScene();
   T.addHomeButton('../../index.html');
+  T.music.addButton();
 
   $('anim').innerHTML = T.art.dino();
   $('egg-wrap').innerHTML = T.art.egg();
@@ -259,6 +260,7 @@
 
   function startSleeping() {
     document.body.classList.add('night');
+    T.music.duck(true);
     mood('shut', 'smile');
     const puffZ = () => {
       const p = dinoPoint(0.74, 0.2);
@@ -279,6 +281,7 @@
   function stopSleeping() {
     clearInterval(zzzTimer);
     document.body.classList.remove('night');
+    T.music.duck(false);
     wake = null;
   }
 
@@ -461,7 +464,7 @@
   /* ---------- Touch and mouse anywhere ---------- */
 
   addEventListener('pointerdown', (e) => {
-    if (e.target.closest('#home, .act')) return;
+    if (e.target.closest('#home, #music, .act')) return;
     if (phase !== 'awake') return anyPress();
     if (wake) return wake();
     if (e.target.closest('.dino')) return pat();

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dino Jukebox</title>
+<link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+<style>
+  body { margin: 0 auto; max-width: 640px; padding: 24px 16px; background: #E6FAFF; color: #20324A; font: 18px/1.5 system-ui, sans-serif; }
+  h1 { margin: 0 0 4px; font-size: 28px; }
+  p { margin: 0 0 20px; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  .piece { display: block; width: 100%; margin-bottom: 8px; padding: 12px 16px; border: 0; border-radius: 16px; background: #fff; text-align: left; }
+  .piece b { display: block; }
+  .piece.on { background: #35C9A5; }
+  .piece:focus-visible, #stop:focus-visible { outline: 3px solid #20324A; outline-offset: 2px; }
+  #stop { margin-top: 8px; padding: 10px 20px; border: 2px solid #20324A; border-radius: 999px; background: none; }
+  footer { margin-top: 24px; font-size: 15px; }
+  a { color: inherit; }
+</style>
+</head>
+<body>
+<h1>Dino jukebox</h1>
+<p>Every piece the games play, on Game Boy style channels. Pick one to hear it.</p>
+<div id="list"></div>
+<button id="stop">Stop the music</button>
+<footer>Arranged from scores by the <a href="https://www.mutopiaproject.org/">Mutopia Project</a>. Credits are in the project's README.</footer>
+
+<script src="../shared/audio.js"></script>
+<script src="../shared/music-data.js"></script>
+<script src="../shared/music.js"></script>
+<script>
+(function () {
+  const T = window.Teva;
+  const list = document.getElementById('list');
+  const minutes = (ms) => `${Math.floor(ms / 60000)}:${String(Math.round(ms / 1000) % 60).padStart(2, '0')}`;
+  const buttons = T.musicTracks.map((track, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'piece';
+    const name = document.createElement('b');
+    name.textContent = track.title;
+    btn.append(name, `${track.composer}, ${minutes(track.ms)}`);
+    btn.addEventListener('click', () => {
+      T.audio.unlock();
+      T.music.setMuted(false);
+      T.music.play(i);
+    });
+    list.appendChild(btn);
+    return btn;
+  });
+  T.music.onChange(() => buttons.forEach((b, i) => b.classList.toggle('on', i === T.music.playing)));
+  document.getElementById('stop').addEventListener('click', () => T.music.stop());
+})();
+</script>
+</body>
+</html>

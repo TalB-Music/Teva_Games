@@ -79,6 +79,8 @@
 <nav id="nest" aria-label="Games"></nav>
 
 <script src="shared/audio.js"></script>
+<script src="shared/music-data.js"></script>
+<script src="shared/music.js"></script>
 <script src="shared/input.js"></script>
 <script src="shared/art.js"></script>
 <script src="shared/games.js"></script>
@@ -86,6 +88,7 @@
 (function () {
   const T = window.Teva;
   T.addScene();
+  T.music.addButton();
   const nest = document.getElementById('nest');
   const slots = [];
 

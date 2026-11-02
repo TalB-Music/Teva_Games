@@ -24,13 +24,14 @@ Every push to `main` updates the website and builds a new APK. The APK's signing
 | Walk | Tap the ground | Stick or d-pad | Arrow keys |
 | Giggle | Tap the dino | Any other button | Any other key |
 | Back to all games | Hold the house | Hold + and − | Hold Esc |
+| Music on or off | Tap the note | | |
 
-If a controller misbehaves, open `tools/pad-test.html` to see what it reports.
+If a controller misbehaves, open `tools/pad-test.html` to see what it reports. To hear every piece of music, open `tools/jukebox.html`.
 
 ## Add a game
 
 1. Make a folder at `games/<id>/` with an `index.html`.
-2. Load `shared/audio.js`, `shared/input.js` and `shared/art.js`, plus `shared/world.css`.
+2. Load `shared/audio.js`, `shared/music-data.js`, `shared/music.js`, `shared/input.js` and `shared/art.js`, plus `shared/world.css`.
 3. Add it to the list in `shared/games.js`, and remove one of the waiting eggs.
 
 ## Rules for Teva's games
@@ -41,5 +42,18 @@ If a controller misbehaves, open `tools/pad-test.html` to see what it reports.
 - Draw everything as SVG, so it looks the same on every device.
 
 Add `?reset=1` to the Dino Friend address to start again from the egg.
+
+## Music
+
+Game Boy style arrangements, made by `tools/midi_to_chip.py` from scores engraved by volunteers at the [Mutopia Project](https://www.mutopiaproject.org/). `shared/music-data.js` is shared under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/), as the source licences require.
+
+| Piece | Composer | Source licence |
+| --- | --- | --- |
+| Prelude in A major, Op. 28 No. 7 | Chopin | Public domain |
+| Prelude in F major, Op. 28 No. 23 | Chopin | CC BY-SA 4.0 |
+| Prelude in G major, Op. 28 No. 3 | Chopin | CC BY-SA 4.0 |
+| Nocturne in E-flat major, Op. 9 No. 2 | Chopin | CC BY-SA 3.0 |
+| Prelude in D major, Op. 23 No. 4 | Rachmaninoff | CC BY-SA 4.0 |
+| Prelude in E-flat major, Op. 23 No. 6 | Rachmaninoff | CC BY-SA 4.0 |
 
 The title font is [Chango](https://fonts.google.com/specimen/Chango), under the SIL Open Font License.
