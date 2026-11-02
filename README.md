@@ -4,10 +4,16 @@ A little portal of dinosaur games for Teva. Plain HTML, CSS and JavaScript with 
 
 ## Play
 
-Double-click `index.html`, or run a local server from this folder and open http://localhost:8123:
+**On the PC:** run a local server from this folder, then open http://localhost:8123 in Chrome:
 
 ```bash
 python -m http.server 8123
+```
+
+**On the phone, over home Wi-Fi:** run this on the PC instead, then open `http://<PC's IP address>:8123` on the phone. Windows may ask you to allow it through the firewall.
+
+```bash
+python -m http.server 8123 --bind 0.0.0.0
 ```
 
 ## Controls
