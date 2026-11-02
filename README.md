@@ -4,17 +4,17 @@ A little portal of dinosaur games for Teva. Plain HTML, CSS and JavaScript with 
 
 ## Play
 
-**On the PC:** run a local server from this folder, then open http://localhost:8123 in Chrome:
+**In a browser, on anything:** https://talb-music.github.io/Teva_Games/
+
+**As an Android app:** download [teva-games.apk](https://github.com/TalB-Music/Teva_Games/releases/latest/download/teva-games.apk) on the phone and install it. Android will ask you to allow installing apps from your browser. The app runs full screen and works offline, and each new version installs over the last.
+
+**While working on it:** run a local server from this folder, then open http://localhost:8123 in Chrome:
 
 ```bash
 python -m http.server 8123
 ```
 
-**On the phone, over home Wi-Fi:** run this on the PC instead, then open `http://<PC's IP address>:8123` on the phone. Windows may ask you to allow it through the firewall.
-
-```bash
-python -m http.server 8123 --bind 0.0.0.0
-```
+Every push to `main` updates the website and builds a new APK. The APK's signing key is kept in the `KEYSTORE_BASE64` repository secret, never in this repo.
 
 ## Controls
 
@@ -41,3 +41,5 @@ If a controller misbehaves, open `tools/pad-test.html` to see what it reports.
 - Draw everything as SVG, so it looks the same on every device.
 
 Add `?reset=1` to the Dino Friend address to start again from the egg.
+
+The title font is [Chango](https://fonts.google.com/specimen/Chango), under the SIL Open Font License.

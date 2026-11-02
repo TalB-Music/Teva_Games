@@ -1,0 +1,8 @@
+{
+  "appId": "com.talmusictech.tevagames",
+  "appName": "Teva Games",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#8FDFFF"
+  }
+}
