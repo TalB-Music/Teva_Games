@@ -23,7 +23,7 @@ Every push to `main` updates the website and builds a new APK. The APK's signing
 | Do something | Tap a stone | Any of the first four buttons | 1, 2, 3, 4 |
 | Walk | Tap the ground | Stick or d-pad | Arrow keys |
 | Giggle | Tap the dino | Any other button | Any other key |
-| Back to all games | Hold the house | Hold + and − | Hold Esc |
+| Back to all games | Hold the house | Hold + and −, or Home | Hold Esc |
 | Music on or off | Tap the note | | |
 
 If a controller misbehaves, open `tools/pad-test.html` to see what it reports. To hear every piece of music, open `tools/jukebox.html`.

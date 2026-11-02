@@ -135,7 +135,11 @@
   }));
 
   // Left to right on screen, whatever order the grid puts them in.
-  const order = () => slots.slice().sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+  const middle = (el) => {
+    const r = el.getBoundingClientRect();
+    return r.left + r.width / 2;
+  };
+  const order = () => slots.slice().sort((a, b) => middle(a) - middle(b));
   let selected = null;
   function select(btn) {
     slots.forEach((s) => s.classList.toggle('selected', s === btn));
@@ -150,6 +154,7 @@
   const press = () => (selected || slots[0]).activate();
 
   T.input.listen({
+    padFound() { if (!selected) select(slots[0]); },
     direction(d) { if (d.x) move(d.x); },
     button: press,
     key(k) { if (k === 'Enter' || k === ' ') press(); },

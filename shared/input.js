@@ -40,6 +40,29 @@
 
   let homeSince = 0;
 
+  // A little picture shows that the controller is working, since nothing else says so.
+  function padFound() {
+    if (!document.getElementById('pad-badge')) {
+      const badge = document.createElement('div');
+      badge.id = 'pad-badge';
+      badge.setAttribute('role', 'img');
+      badge.setAttribute('aria-label', 'Controller connected');
+      badge.innerHTML =
+        '<svg viewBox="0 0 64 40" aria-hidden="true"><path d="M18 3h28c10 0 16 10 17 24 1 11-9 14-14 7l-5-7H20l-5 7C10 41 0 38 1 27 2 13 8 3 18 3Z"/>' +
+        '<path class="pad-marks" d="M18 11v10M13 16h10"/><circle class="pad-dot" cx="45" cy="12" r="3"/><circle class="pad-dot" cx="51" cy="18" r="3"/></svg>';
+      document.body.appendChild(badge);
+    }
+    emit('padFound');
+    if (T.audio) T.audio.chirp();
+  }
+
+  addEventListener('gamepaddisconnected', (e) => {
+    prev.delete(e.gamepad.index);
+    const anyLeft = [...(navigator.getGamepads ? navigator.getGamepads() : [])].some(Boolean);
+    const badge = document.getElementById('pad-badge');
+    if (badge && !anyLeft) badge.remove();
+  });
+
   function pollPads(now) {
     const pads = navigator.getGamepads ? navigator.getGamepads() : [];
     let padX = 0;
@@ -48,6 +71,7 @@
     for (const p of pads) {
       if (!p) continue;
       state.padName = p.id;
+      if (!prev.has(p.index)) padFound();
       const old = prev.get(p.index) || [];
       const next = p.buttons.map((b) => b.pressed);
       next.forEach((pressed, i) => {
@@ -55,7 +79,7 @@
         if (pressed && !old[i] && !isDpad) emit('button', i);
       });
       prev.set(p.index, next);
-      if (next[8] && next[9]) bothMenuButtons = true;
+      if ((next[8] && next[9]) || (p.mapping === 'standard' && next[16])) bothMenuButtons = true;
       const d = readDirection(p);
       padX = padX || d.x;
       padY = padY || d.y;
