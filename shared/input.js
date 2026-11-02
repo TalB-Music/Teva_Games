@@ -53,7 +53,8 @@
   let hidPad = null;
 
   function readHidReport(report) {
-    if (report.reportId !== NINTENDO_SIMPLE_REPORT || report.data.byteLength < 7) return;
+    if (!hidPad || report.reportId !== NINTENDO_SIMPLE_REPORT || report.data.byteLength < 7) return;
+    hidPad.live = true;
     const data = report.data;
     const bits = data.getUint8(0) | (data.getUint8(1) << 8);
     const pressed = new Array(HID_BUTTONS).fill(false);
@@ -71,12 +72,14 @@
     try {
       if (!device.opened) await device.open();
     } catch (e) {
+      console.warn(`Couldn't open ${device.productName}: ${e.message}`);
       return;
     }
     hidPad = {
       index: 'hid',
       id: device.productName,
       device,
+      live: false,
       mapping: 'standard',
       axes: [0, 0],
       buttons: new Array(HID_BUTTONS).fill({ pressed: false }),
@@ -110,6 +113,9 @@
 
   async function setUpHid() {
     if (!navigator.hid) return;
+    // The icon stays until the pad actually sends something, because a remembered
+    // pad can still fail to open or be switched off.
+    addConnectButton();
     navigator.hid.addEventListener('connect', (e) => attachHid(e.device));
     navigator.hid.addEventListener('disconnect', (e) => {
       if (!hidPad || hidPad.device !== e.device) return;
@@ -121,11 +127,10 @@
     });
     try {
       const [known] = await navigator.hid.getDevices();
-      if (known) return attachHid(known);
+      if (known) attachHid(known);
     } catch (e) {
-      // Blocked by the page's host. The icon below may still offer a way in.
+      // Blocked by the page's host. The icon may still offer a way in.
     }
-    addConnectButton();
   }
 
   // A little picture shows that the controller is working, since nothing else says so.
@@ -153,7 +158,7 @@
 
   function pollPads(now) {
     const browserPads = [...(navigator.getGamepads ? navigator.getGamepads() : [])].filter(Boolean);
-    const pads = browserPads.length || !hidPad ? browserPads : [hidPad];
+    const pads = browserPads.length || !hidPad || !hidPad.live ? browserPads : [hidPad];
     let padX = 0;
     let padY = 0;
     let bothMenuButtons = false;

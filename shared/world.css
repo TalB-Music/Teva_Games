@@ -128,9 +128,9 @@ body.night .ground { filter: brightness(.48) saturate(.8) hue-rotate(-14deg); }
   height: 52px;
   margin-left: -38px;
   padding: 6px;
-  opacity: .55;
+  opacity: .85;
 }
-#pad-connect .pad-body { fill: rgb(32 50 74 / .35); stroke: #fff; stroke-width: 2.5; }
+#pad-connect .pad-body { fill: rgb(32 50 74 / .6); stroke: #fff; stroke-width: 2.5; }
 #pad-connect .pad-marks { stroke: #fff; }
 #pad-connect .pad-dot { fill: #fff; }
 #pad-connect:hover { opacity: 1; }
