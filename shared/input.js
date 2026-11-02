@@ -41,8 +41,6 @@
     return { x, y };
   }
 
-  let homeSince = 0;
-
   // Chrome's Gamepad API can miss Switch-style pads on Windows, even when Windows
   // itself sees them, so the pad can also be read directly over WebHID. It's shaped
   // like a standard gamepad, and the rest of this file treats it as one.
@@ -174,7 +172,6 @@
     const pads = browserPads.length || !hidPad || !hidPad.live ? browserPads : [hidPad];
     let padX = 0;
     let padY = 0;
-    let bothMenuButtons = false;
     for (const p of pads) {
       if (!p) continue;
       state.padName = p.id;
@@ -186,16 +183,9 @@
         if (pressed && !old[i] && !isDpad && !isAutoFire(`${p.index}:${i}`, now)) emit('button', i);
       });
       prev.set(p.index, next);
-      if ((next[8] && next[9]) || (p.mapping === 'standard' && next[16])) bothMenuButtons = true;
       const d = readDirection(p);
       padX = padX || d.x;
       padY = padY || d.y;
-    }
-    if (bothMenuButtons) {
-      homeSince = homeSince || now;
-      if (now - homeSince > HOME_HOLD_MS && T.goHome) T.goHome();
-    } else {
-      homeSince = 0;
     }
     if (padX !== state.padX || padY !== state.padY) {
       state.padX = padX;

@@ -473,20 +473,14 @@
     if (phase === 'awake' && !picked) pick(ACTIONS[0]);
   }
 
-  const L_BUTTON = 4;
-  const R_BUTTON = 5;
-  const SHOULDER_STEP = 150;
-
   T.input.listen({
     padFound: startController,
-    // Whatever button gets mashed, something happens. The main four press the ringed stone.
-    button(i) {
+    // Every button does the same thing, so there's no wrong one to press.
+    button() {
       startController();
       if (phase !== 'awake') return anyPress();
       if (wake) return wake();
-      if (i < 4) return press(picked);
-      if ((i === L_BUTTON || i === R_BUTTON) && !busy) return walkTo(x + (i === R_BUTTON ? SHOULDER_STEP : -SHOULDER_STEP));
-      anyPress();
+      press(picked);
     },
     key(k) {
       const n = Number(k);

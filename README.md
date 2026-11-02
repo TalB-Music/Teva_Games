@@ -21,10 +21,10 @@ Every push to `main` updates the website and builds a new APK. The APK's signing
 | | Touch or mouse | Controller | Keyboard |
 | --- | --- | --- | --- |
 | Choose a stone | | Stick or d-pad moves the ring | Arrow keys |
-| Do something | Tap a stone | A, B, X or Y presses the ringed stone | Enter or Space, or 1, 2, 3, 4 |
-| Walk | Tap the ground | L or R | |
-| Giggle | Tap the dino | Any other button | Any other key |
-| Back to all games | Hold the house | Hold + and −, or Home | Hold Esc |
+| Do something | Tap a stone | Any button presses the ringed stone | Enter or Space, or 1, 2, 3, 4 |
+| Walk | Tap the ground | | |
+| Giggle | Tap the dino | | Any other key |
+| Back to all games | Hold the house | | Hold Esc |
 | Music on or off | Tap the note | | |
 
 In Chrome on a computer, press a controller button first. If no controller picture appears at the top, click the dark controller icon there and choose your pad. Chrome remembers it, and the pad reconnects by itself after that.
