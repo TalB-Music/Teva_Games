@@ -24,7 +24,9 @@
 <p id="hid-status">Not connected.</p>
 <p id="hid-report" style="font: 700 28px/1.2 system-ui, sans-serif">Report: none yet</p>
 <p id="hid-bytes" style="font-family: ui-monospace, monospace; overflow-wrap: anywhere"></p>
+<p id="hid-moving" style="font-family: ui-monospace, monospace; overflow-wrap: anywhere; white-space: pre-line"></p>
 <script>
+  const hidMoving = document.getElementById('hid-moving');
   const hidStatus = document.getElementById('hid-status');
   const hidReport = document.getElementById('hid-report');
   const hidBytes = document.getElementById('hid-bytes');
@@ -44,11 +46,26 @@
       if (!device.opened) await device.open();
       hidStatus.textContent = `Connected to ${device.productName}. Press buttons now.`;
       let count = 0;
+      const started = performance.now();
+      const perReport = {};
       device.addEventListener('inputreport', (e) => {
         count++;
-        const hex = [...new Uint8Array(e.data.buffer)].map((b) => b.toString(16).padStart(2, '0')).join(' ');
-        hidReport.textContent = `Report: ${e.reportId.toString(16).toUpperCase()} (${count} received)`;
+        const bytes = [...new Uint8Array(e.data.buffer, e.data.byteOffset, e.data.byteLength)];
+        const hex = bytes.map((b) => b.toString(16).padStart(2, '0')).join(' ');
+        const id = e.reportId.toString(16).toUpperCase();
+        hidReport.textContent = `Report: ${id} (${count} received)`;
         hidBytes.textContent = hex;
+        const seen = (perReport[id] = perReport[id] || { count: 0, low: bytes.slice(), high: bytes.slice() });
+        seen.count++;
+        bytes.forEach((b, i) => {
+          seen.low[i] = Math.min(seen.low[i], b);
+          seen.high[i] = Math.max(seen.high[i], b);
+        });
+        const seconds = Math.max(1, (performance.now() - started) / 1000);
+        hidMoving.textContent = Object.entries(perReport).map(([name, r]) => {
+          const moving = r.low.map((low, i) => (low === r.high[i] ? null : `byte ${i}: ${low.toString(16)}-${r.high[i].toString(16)}`)).filter(Boolean);
+          return `Report ${name}: ${(r.count / seconds).toFixed(1)} per second, changing: ${moving.join(', ') || 'nothing'}`;
+        }).join('\n');
       });
     } catch (err) {
       hidStatus.textContent = `Couldn't connect: ${err.message}`;
