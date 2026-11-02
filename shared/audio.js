@@ -72,6 +72,12 @@
     bubble() {
       tone(420 + Math.random() * 300, 1000 + Math.random() * 400, 0.09, 0, 'sine', 0.4);
     },
+    splash() {
+      noise(0.28, 0, 700, 0.6);
+    },
+    brush() {
+      noise(0.1, 0, 3800, 0.35);
+    },
     crack() {
       noise(0.07, 0, 2600, 0.8);
       noise(0.05, 0.06, 1800, 0.6);

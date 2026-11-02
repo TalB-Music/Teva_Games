@@ -5,7 +5,7 @@
   const T = window.Teva;
   const SAVE_KEY = 'teva.dinoPet.v1';
   const ACTIONS = ['feed', 'play', 'bath', 'sleep'];
-  const ACTION_ICONS = { feed: 'leaf', play: 'ball', bath: 'bubbles', sleep: 'moon' };
+  const ACTION_ICONS = { feed: 'leaf', play: 'ball', bath: 'tub', sleep: 'moon' };
   const ACTION_NAMES = { feed: 'Feed', play: 'Play', bath: 'Bath', sleep: 'Sleep' };
   const NAP_MS = 7000;
   const WALK_SPEED = 240;
@@ -78,7 +78,6 @@
   }
   const mouth = () => dinoPoint(0.47, 0.5);
   const top = () => dinoPoint(0.47, 0.12);
-  const belly = () => dinoPoint(0.48, 0.7);
 
   function walkLimit() {
     const size = dino.getBoundingClientRect().width;
@@ -162,6 +161,41 @@
     mood();
   }
 
+  // The toothbrush slides in, scrubs with plenty of foam, and leaves a sparkle behind.
+  async function brushTeeth() {
+    const m = mouth();
+    const size = dino.getBoundingClientRect().width * 0.42;
+    const brush = T.fx.make('toothbrush', m.x + size * 0.26, m.y + size * 0.06, size);
+    const offscreen = innerWidth - m.x + size;
+    mood('open', 'open');
+    await brush.animate(
+      [{ transform: `translateX(${offscreen}px)` }, { transform: 'none' }],
+      { duration: 420, easing: 'ease-out' }
+    ).finished;
+    for (let i = 0; i < 6; i++) {
+      T.audio.brush();
+      T.fx.burst('bubbles', m.x, m.y, 2, 22, 80);
+      await brush.animate(
+        [{ transform: 'none' }, { transform: `translateX(-${size * 0.2}px)` }, { transform: `translateX(${size * 0.1}px)` }, { transform: 'none' }],
+        { duration: 210 }
+      ).finished;
+    }
+    await brush.animate(
+      [{ transform: 'none' }, { transform: `translateX(${offscreen}px)` }],
+      { duration: 340, easing: 'ease-in', fill: 'forwards' }
+    ).finished;
+    brush.remove();
+    mood('happy', 'smile');
+    const tooth = dinoPoint(0.52, 0.5);
+    T.audio.tada();
+    const sparkle = T.fx.make('star', tooth.x, tooth.y, size * 0.4);
+    await sparkle.animate(
+      [{ transform: 'scale(0) rotate(0)' }, { transform: 'scale(1.3) rotate(90deg)', offset: 0.6 }, { transform: 'scale(0) rotate(180deg)' }],
+      { duration: 700 }
+    ).finished;
+    sparkle.remove();
+  }
+
   /* ---------- The four things to do ---------- */
 
   const doAction = {
@@ -223,29 +257,53 @@
     },
 
     async bath() {
-      mood('shut', 'smile');
       const r = dino.getBoundingClientRect();
-      const blow = setInterval(() => {
-        const bx = r.left + Math.random() * r.width;
-        const by = r.bottom - Math.random() * r.height * 0.4;
-        const s = 26 + Math.random() * 54;
-        const b = T.fx.make('bubbles', bx, by, s);
+      const middle = r.left + r.width / 2;
+
+      // The tub pops up around the dino, with a duck bobbing on the water.
+      const tubSize = r.width * 1.15;
+      const tubMiddle = r.bottom + r.width * 0.04 - tubSize * 0.42;
+      const rimY = tubMiddle - tubSize * 0.05;
+      const tub = T.fx.make('tub', middle, tubMiddle, tubSize);
+      const duck = T.fx.make('duck', middle + tubSize * 0.3, rimY - tubSize * 0.06, tubSize * 0.2);
+      mood('open', 'open');
+      T.audio.splash();
+      const popIn = [{ transform: 'translateY(30%) scale(.2)', opacity: 0 }, { transform: 'scale(1.05)', opacity: 1, offset: 0.7 }, { transform: 'none', opacity: 1 }];
+      duck.animate(popIn, { duration: 420 });
+      await tub.animate(popIn, { duration: 420, easing: 'ease-out' }).finished;
+      duck.animate(
+        [{ transform: 'rotate(-10deg)' }, { transform: 'translateY(-14%) rotate(10deg)' }, { transform: 'rotate(-10deg)' }],
+        { duration: 800, iterations: Infinity }
+      );
+
+      // A good soak: splashes, and bubbles floating up from the water.
+      mood('shut', 'smile');
+      const soap = setInterval(() => {
+        const s = 22 + Math.random() * 44;
+        const b = T.fx.make('bubbles', middle + (Math.random() - 0.5) * tubSize * 0.7, rimY - tubSize * 0.1, s);
         T.audio.bubble();
         b.animate(
           [
             { transform: 'translateY(0) scale(.4)', opacity: 1 },
-            { transform: `translate(${(Math.random() - 0.5) * 70}px,-${r.height * 0.8}px) scale(1.1)`, opacity: 0.9, offset: 0.85 },
-            { transform: `translate(0,-${r.height}px) scale(1.5)`, opacity: 0 },
+            { transform: `translate(${(Math.random() - 0.5) * 70}px,-${r.height * 0.55}px) scale(1.1)`, opacity: 0.9, offset: 0.85 },
+            { transform: `translate(0,-${r.height * 0.7}px) scale(1.5)`, opacity: 0 },
           ],
-          { duration: 1500 + Math.random() * 500, easing: 'ease-out' }
+          { duration: 1300 + Math.random() * 500, easing: 'ease-out' }
         ).onfinish = () => b.remove();
-      }, 110);
-      await wiggle(1500);
-      clearInterval(blow);
-      mood('happy', 'open');
-      const b = belly();
-      T.fx.burst('star', b.x, b.y - r.height * 0.3, 8, 40, 260);
-      await wiggle(420);
+      }, 170);
+      for (let i = 0; i < 3; i++) {
+        T.audio.splash();
+        T.fx.burst('drop', middle, rimY - tubSize * 0.08, 6, 26, 230);
+        await wiggle(620);
+      }
+      clearInterval(soap);
+
+      // Out of the tub, all clean.
+      const popOut = [{ transform: 'none', opacity: 1 }, { transform: 'translateY(30%) scale(.2)', opacity: 0 }];
+      duck.animate(popOut, { duration: 300, fill: 'forwards' }).onfinish = () => duck.remove();
+      await tub.animate(popOut, { duration: 300, easing: 'ease-in', fill: 'forwards' }).finished;
+      tub.remove();
+      await brushTeeth();
     },
 
     async sleep() {
