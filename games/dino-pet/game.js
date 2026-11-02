@@ -533,7 +533,7 @@
 
   T.input.listen({
     padFound: startController,
-    // Every button does the same thing, so there's no wrong one to press.
+    // A, B, X and Y all do the same thing, so there's no wrong one to press.
     button() {
       startController();
       if (phase !== 'awake') return anyPress();

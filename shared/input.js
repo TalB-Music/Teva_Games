@@ -11,6 +11,8 @@
   const state = { x: 0, y: 0, keyX: 0, keyY: 0, padX: 0, padY: 0, padName: '' };
   const DEADZONE = 0.5;
   const HOME_HOLD_MS = 1200;
+  // A, B, X and Y all select. Shoulder, menu and stick-click buttons do nothing.
+  const MAIN_BUTTONS = 4;
   const PAD_ICON =
     '<svg viewBox="0 0 64 40" aria-hidden="true"><path class="pad-body" d="M18 3h28c10 0 16 10 17 24 1 11-9 14-14 7l-5-7H20l-5 7C10 41 0 38 1 27 2 13 8 3 18 3Z"/>' +
     '<path class="pad-marks" d="M18 11v10M13 16h10"/><circle class="pad-dot" cx="45" cy="12" r="3"/><circle class="pad-dot" cx="51" cy="18" r="3"/></svg>';
@@ -180,7 +182,7 @@
       const next = p.buttons.map((b) => b.pressed);
       next.forEach((pressed, i) => {
         const isDpad = p.mapping === 'standard' && i >= 12 && i <= 15;
-        if (pressed && !old[i] && !isDpad && !isAutoFire(`${p.index}:${i}`, now)) emit('button', i);
+        if (pressed && !old[i] && !isDpad && i < MAIN_BUTTONS && !isAutoFire(`${p.index}:${i}`, now)) emit('button', i);
       });
       prev.set(p.index, next);
       const d = readDirection(p);
