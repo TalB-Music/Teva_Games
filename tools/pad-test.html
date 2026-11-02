@@ -46,6 +46,8 @@
       if (!device.opened) await device.open();
       hidStatus.textContent = `Connected to ${device.productName}. Press buttons now.`;
       let count = 0;
+      let firstByteRises = 0;
+      let lastFirstByte = 0;
       const started = performance.now();
       const perReport = {};
       device.addEventListener('inputreport', (e) => {
@@ -53,7 +55,11 @@
         const bytes = [...new Uint8Array(e.data.buffer, e.data.byteOffset, e.data.byteLength)];
         const hex = bytes.map((b) => b.toString(16).padStart(2, '0')).join(' ');
         const id = e.reportId.toString(16).toUpperCase();
-        hidReport.textContent = `Report: ${id} (${count} received)`;
+        hidReport.textContent = `Report: ${id} (${count} received, button presses: ${(firstByteRises / Math.max(1, (performance.now() - started) / 1000)).toFixed(1)} per second)`;
+        if (e.reportId === 0x3f) {
+          firstByteRises += bytes[0] & ~lastFirstByte ? 1 : 0;
+          lastFirstByte = bytes[0];
+        }
         hidBytes.textContent = hex;
         const seen = (perReport[id] = perReport[id] || { count: 0, low: bytes.slice(), high: bytes.slice() });
         seen.count++;

@@ -156,6 +156,19 @@
     if (badge && !anyLeft) badge.remove();
   });
 
+  // Some pads have a turbo mode that presses a button by itself, over and over.
+  // Anything faster than small hands can go is ignored until it slows down.
+  const AUTO_FIRE_WINDOW_MS = 1500;
+  const AUTO_FIRE_PRESSES = 5;
+  const recentPresses = new Map();
+
+  function isAutoFire(key, now) {
+    const presses = (recentPresses.get(key) || []).filter((t) => now - t < AUTO_FIRE_WINDOW_MS);
+    presses.push(now);
+    recentPresses.set(key, presses);
+    return presses.length >= AUTO_FIRE_PRESSES;
+  }
+
   function pollPads(now) {
     const browserPads = [...(navigator.getGamepads ? navigator.getGamepads() : [])].filter(Boolean);
     const pads = browserPads.length || !hidPad || !hidPad.live ? browserPads : [hidPad];
@@ -170,7 +183,7 @@
       const next = p.buttons.map((b) => b.pressed);
       next.forEach((pressed, i) => {
         const isDpad = p.mapping === 'standard' && i >= 12 && i <= 15;
-        if (pressed && !old[i] && !isDpad) emit('button', i);
+        if (pressed && !old[i] && !isDpad && !isAutoFire(`${p.index}:${i}`, now)) emit('button', i);
       });
       prev.set(p.index, next);
       if ((next[8] && next[9]) || (p.mapping === 'standard' && next[16])) bothMenuButtons = true;
