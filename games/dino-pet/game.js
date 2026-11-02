@@ -425,41 +425,82 @@
   function becomeAwake() {
     phase = 'awake';
     $('actions').hidden = false;
+    if (usingController) pick(picked || ACTIONS[0]);
     scheduleWish();
   }
 
   /* ---------- Controller and keyboard ---------- */
 
+  let picked = null;
+  let usingController = false;
+
+  function pick(action) {
+    if (picked) buttons[picked].classList.remove('picked');
+    picked = action;
+    buttons[picked].classList.add('picked');
+  }
+
+  function middleOf(action) {
+    const r = buttons[action].getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  }
+
+  // Goes by what's on screen, since the stones sit differently in portrait and landscape.
+  function movePick(d) {
+    if (d.x && d.y) return;
+    if (!picked) return pick(ACTIONS[0]);
+    const from = middleOf(picked);
+    let best = null;
+    let bestDistance = Infinity;
+    ACTIONS.filter((a) => a !== picked).forEach((a) => {
+      const to = middleOf(a);
+      const along = (to.x - from.x) * d.x + (to.y - from.y) * d.y;
+      if (along <= 1) return;
+      const distance = Math.hypot(to.x - from.x, to.y - from.y);
+      if (distance < bestDistance) {
+        best = a;
+        bestDistance = distance;
+      }
+    });
+    if (best) {
+      pick(best);
+      T.audio.hop();
+    }
+  }
+
+  function startController() {
+    usingController = true;
+    if (phase === 'awake' && !picked) pick(ACTIONS[0]);
+  }
+
+  const L_BUTTON = 4;
+  const R_BUTTON = 5;
+  const SHOULDER_STEP = 150;
+
   T.input.listen({
-    // Whatever button gets mashed, something happens. Four map to the four stones.
+    padFound: startController,
+    // Whatever button gets mashed, something happens. The main four press the ringed stone.
     button(i) {
-      if (phase === 'awake' && i < 4) press(ACTIONS[i]);
-      else anyPress();
+      startController();
+      if (phase !== 'awake') return anyPress();
+      if (wake) return wake();
+      if (i < 4) return press(picked);
+      if ((i === L_BUTTON || i === R_BUTTON) && !busy) return walkTo(x + (i === R_BUTTON ? SHOULDER_STEP : -SHOULDER_STEP));
+      anyPress();
     },
     key(k) {
       const n = Number(k);
       if (phase === 'awake' && n >= 1 && n <= 4) press(ACTIONS[n - 1]);
+      else if (phase === 'awake' && (k === 'Enter' || k === ' ') && picked) press(picked);
       else if (phase === 'awake' && (k === 'Enter' || k === ' ') && wish) press(wish);
       else anyPress();
     },
-    direction() {
+    direction(d) {
+      startController();
       if (phase !== 'awake' || wake) anyPress();
+      else movePick(d);
     },
   });
-
-  let lastFrame = performance.now();
-  function frame(now) {
-    const dt = Math.min(0.05, (now - lastFrame) / 1000);
-    lastFrame = now;
-    if (phase === 'awake' && !busy && T.input.x) {
-      clearTimeout(walkTimer);
-      startWaddle();
-      setX(x + T.input.x * WALK_SPEED * dt);
-      walkTimer = setTimeout(stopWaddle, 80);
-    }
-    requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
 
   /* ---------- Touch and mouse anywhere ---------- */
 

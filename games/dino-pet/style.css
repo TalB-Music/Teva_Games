@@ -91,6 +91,17 @@
 .act.down { transform: translateY(9px); box-shadow: 0 0 0 var(--stone-edge); }
 .act.wanted { animation: wanted 1s ease-in-out infinite; }
 .act:focus-visible { outline: 5px solid #fff; outline-offset: 3px; }
+/* The stone a controller or the arrow keys will press */
+.act.picked::after {
+  content: "";
+  position: absolute;
+  inset: -7px -7px -14px;
+  border: 7px dashed #fff;
+  border-radius: inherit;
+  filter: drop-shadow(0 0 3px rgb(32 50 74 / .7));
+  pointer-events: none;
+  animation: picked 1s ease-in-out infinite;
+}
 
 @media (orientation: landscape) {
   #actions {
@@ -114,6 +125,7 @@
   .act:nth-child(4) { grid-area: 2 / 2; }
 }
 
+@keyframes picked { 50% { transform: scale(1.04); } }
 @keyframes wish-in { from { transform: scale(0); } }
 @keyframes wish-float { 50% { transform: translateY(-7px); } }
 @keyframes rise { from { transform: translateY(40vh); } }
