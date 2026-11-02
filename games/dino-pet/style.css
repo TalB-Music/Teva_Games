@@ -1,0 +1,120 @@
+:root {
+  --dino-size: min(80vw, 44vh);
+  --stone-height: min(16vh, 40vw);
+  --dino-bottom: calc(2 * var(--stone-height) + 5.5vh + env(safe-area-inset-bottom));
+}
+
+@media (orientation: landscape) {
+  :root {
+    --dino-size: min(42vw, 72vh);
+    --dino-bottom: 7vh;
+  }
+}
+
+#stage { position: fixed; inset: 0; z-index: 10; }
+
+#pos, #egg-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: var(--dino-bottom);
+  width: var(--dino-size);
+  margin-left: calc(var(--dino-size) / -2);
+}
+#pos.hidden { visibility: hidden; }
+#grow { transform-origin: 50% 100%; transition: transform .8s cubic-bezier(.3,1.6,.5,1); }
+#anim { transform-origin: 50% 100%; }
+#anim svg { height: auto; aspect-ratio: 410 / 436; filter: drop-shadow(0 7px 0 rgb(32 50 74 / .14)); }
+
+/* What the dino would like next */
+#wish {
+  position: absolute;
+  z-index: 2;
+  right: -3%;
+  top: -13%;
+  width: 34%;
+  aspect-ratio: 1;
+  padding: 7%;
+  border-radius: 50%;
+  background: #fff;
+  animation: wish-in .4s cubic-bezier(.3,1.8,.5,1), wish-float 2s ease-in-out .4s infinite;
+}
+#wish[hidden] { display: none; }
+#wish::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  bottom: -9%;
+  width: 22%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #fff;
+}
+
+#egg-wrap { cursor: pointer; }
+#egg-wrap .egg { height: auto; aspect-ratio: 300 / 360; width: 72%; margin: 0 auto; filter: drop-shadow(0 8px 0 rgb(32 50 74 / .14)); }
+#egg-wrap[data-cracks="1"] .crack-1,
+#egg-wrap[data-cracks="2"] .crack-1,
+#egg-wrap[data-cracks="2"] .crack-2 { opacity: 1; }
+
+/* Four chunky stones, each one a thing to do. Big enough for a whole small hand. */
+#actions {
+  position: fixed;
+  z-index: 20;
+  left: 3vw;
+  right: 3vw;
+  bottom: calc(1.5vh + env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: var(--stone-height);
+  gap: 1.4vh 3vw;
+  animation: rise .5s cubic-bezier(.3,1.5,.5,1);
+}
+#actions[hidden] { display: none; }
+
+.act {
+  --stone: #3DBB6C;
+  --stone-edge: #23864A;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: calc(100% - 9px);
+  background: var(--stone);
+  box-shadow: 0 9px 0 var(--stone-edge);
+  transition: transform .07s, box-shadow .07s;
+}
+.act svg { position: absolute; inset: 13%; width: 74%; height: 74%; }
+.act:nth-child(1) { --stone: #3DBB6C; --stone-edge: #23864A; border-radius: 48% 56% 44% 52% / 58% 46% 54% 44%; }
+.act:nth-child(2) { --stone: #FF6F91; --stone-edge: #C9436A; border-radius: 56% 44% 54% 46% / 46% 58% 42% 54%; }
+.act:nth-child(3) { --stone: #39A9F4; --stone-edge: #1B73B8; border-radius: 44% 58% 48% 52% / 54% 44% 56% 46%; }
+.act:nth-child(4) { --stone: #6A63D8; --stone-edge: #443DA6; border-radius: 54% 46% 58% 42% / 44% 56% 46% 56%; }
+.act.down { transform: translateY(9px); box-shadow: 0 0 0 var(--stone-edge); }
+.act.wanted { animation: wanted 1s ease-in-out infinite; }
+.act:focus-visible { outline: 5px solid #fff; outline-offset: 3px; }
+
+@media (orientation: landscape) {
+  #actions {
+    top: 0;
+    bottom: 0;
+    left: calc(2vw + env(safe-area-inset-left));
+    right: calc(2vw + env(safe-area-inset-right));
+    grid-template-columns: min(36vh, 20vw) min(36vh, 20vw);
+    grid-auto-rows: min(36vh, 20vw);
+    justify-content: space-between;
+    align-content: end;
+    padding-bottom: 3vh;
+    gap: 3vh 0;
+    pointer-events: none;
+  }
+  .act { pointer-events: auto; }
+  /* Two stones either side of the dino */
+  .act:nth-child(1) { grid-area: 1 / 1; }
+  .act:nth-child(2) { grid-area: 2 / 1; }
+  .act:nth-child(3) { grid-area: 1 / 2; }
+  .act:nth-child(4) { grid-area: 2 / 2; }
+}
+
+@keyframes wish-in { from { transform: scale(0); } }
+@keyframes wish-float { 50% { transform: translateY(-7px); } }
+@keyframes rise { from { transform: translateY(40vh); } }
+@keyframes wanted { 50% { transform: translateY(-7px) scale(1.04); } }

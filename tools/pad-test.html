@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Controller Check</title>
+<style>
+  body { margin: 0; padding: 24px; background: #E6FAFF; color: #20324A; font: 18px/1.5 system-ui, sans-serif; }
+  h1 { margin: 0 0 8px; font-size: 26px; }
+  h2 { margin: 24px 0 4px; font-size: 18px; overflow-wrap: anywhere; }
+  .row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .b { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: #fff; font-weight: 700; }
+  .b.on { background: #FF5D87; color: #fff; }
+  .a { min-width: 76px; padding: 4px 8px; border-radius: 8px; background: #fff; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<h1>Controller check</h1>
+<p id="status">Press any button on the controller. Chrome only shows a controller after a button is pressed.</p>
+<div id="pads"></div>
+<script>
+  const pads = document.getElementById('pads');
+  const status = document.getElementById('status');
+  function draw() {
+    const list = [...navigator.getGamepads()].filter(Boolean);
+    if (list.length) status.textContent = 'Found ' + list.length + '. Press buttons to see which number lights up.';
+    pads.innerHTML = list.map((p) => `
+      <h2>${p.id}</h2>
+      <p>Layout: ${p.mapping || 'non-standard'}</p>
+      <div class="row">${p.buttons.map((b, i) => `<div class="b ${b.pressed ? 'on' : ''}">${i}</div>`).join('')}</div>
+      <p class="row">${[...p.axes].map((a, i) => `<span class="a">axis ${i}: ${a.toFixed(2)}</span>`).join('')}</p>`).join('');
+    requestAnimationFrame(draw);
+  }
+  draw();
+</script>
+</body>
+</html>
